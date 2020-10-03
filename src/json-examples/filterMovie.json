@@ -1,0 +1,9 @@
+{
+    "Filter" : {
+        "orderBy" : "published", 
+        "order" : "asc",
+        "amount" : 25,
+        "enabled" : 1,
+        "schema" : "moviedb"
+    }
+}

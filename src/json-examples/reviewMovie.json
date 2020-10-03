@@ -1,0 +1,8 @@
+{
+    "ReviewMovie" : {
+        "title" : "Some movie",
+        "review": "Good movie",
+        "author" : "Myself",
+        "schema" : "moviedb"
+    }
+}

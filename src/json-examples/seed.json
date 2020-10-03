@@ -1,0 +1,6 @@
+{
+    "Seed" : {
+        "num" : 200,
+        "schema" : "moviedb"
+    }
+}

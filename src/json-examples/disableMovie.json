@@ -1,0 +1,6 @@
+{
+    "Disable" : {
+        "title" : "Some movie",
+        "schema" : "moviedb"
+    }
+}
