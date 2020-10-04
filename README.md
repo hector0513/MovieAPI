@@ -22,4 +22,8 @@ Deploys the API on port 7500 (External) and 3000 (Internal)
 Deploys MySql on port 3307 (External) and 3306 (Internal). Creates database "moviedb"
 Deploys Adminer on port 6050 (External) and 8080 (Internal)
 
+Database:
+Default user: root
+Default password: password
+
 
