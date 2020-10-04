@@ -29,11 +29,17 @@ const db = mysql_1.default.createConnection({
     password: process.parsed.DB_PASSWORD,
     database: process.parsed.DB_NAME
 });
-db.connect(function (err) {
-    if (err)
-        throw err;
-    console.log("Connected!");
-});
+let retries = 0;
+setTimeout(() => {
+    db.connect((err) => __awaiter(void 0, void 0, void 0, function* () {
+        if (err) {
+            console.log("Error...", err);
+            new Promise(res => setTimeout(res, 5000));
+            retries++;
+        }
+        console.log("Connected!");
+    }));
+}, 2000);
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(body_parser_1.default.json());
 app.use(cors_1.default());
@@ -52,10 +58,10 @@ app.post('/seed', (req, res) => {
     try {
         let createtb_movies = `CREATE TABLE IF NOT EXISTS ${schema}.tb_movies (title varchar(50) NOT NULL,description varchar(1000) NOT NULL,published timestamp NOT NULL,enabled boolean NOT NULL,PRIMARY KEY(title))`;
         let createtb_reviews = `CREATE TABLE IF NOT EXISTS ${schema}.tb_reviews (title varchar(50) NOT NULL,review varchar(1000) NOT NULL, author varchar(100) NOT NULL,published timestamp NOT NULL,enabled boolean NOT NULL)`;
+        console.log(createtb_movies, createtb_reviews);
         db.query(createtb_movies, (error, results, fields) => {
             if (error) {
                 console.log(error);
-                res.send(error);
                 throw error;
             }
             console.log(results, fields);
@@ -63,7 +69,6 @@ app.post('/seed', (req, res) => {
         db.query(createtb_reviews, (error, results, fields) => {
             if (error) {
                 console.log(error);
-                res.send(error);
                 throw error;
             }
             console.log(results, fields);
@@ -75,7 +80,6 @@ app.post('/seed', (req, res) => {
     }
     try {
         for (let i = 1; i <= num; i++) {
-            console.log(movieNames.GetMovies);
             let movieNamesLength = movieNames.GetMovies.length;
             let ran = Math.floor(Math.random() * movieNamesLength);
             let title = mysql_1.default.escape(movieNames.GetMovies[ran]);
@@ -131,7 +135,6 @@ app.post('/disable-movie', (req, res) => {
     db.query(checkMovie, (error, results, fields) => {
         if (error) {
             console.log("Error performing query");
-            res.send("Error performing query");
             throw error;
         }
         if (results.length == 0) {
@@ -164,17 +167,17 @@ app.post('/get-reviews', (req, res) => __awaiter(void 0, void 0, void 0, functio
                 throw error;
             }
             console.log(results);
+            res.send(results);
             log = results;
         });
     }
     catch (e) {
     }
-    console.log(log);
-    res.send(log);
 }));
 app.post('/filter-movies', (req, res) => {
     let data = req.body;
     let schema = data.Filter.schema;
+    let result;
     if (data.Filter.order == null || data.Filter.orderBy == null) {
         res.send("Missing properties");
     }
@@ -185,16 +188,18 @@ app.post('/filter-movies', (req, res) => {
                 let query = `SELECT * FROM ${schema}.tb_movies ORDER BY ${orderBy} DESC`;
                 db.query(query, (error, results, fields) => {
                     if (error)
-                        res.send(error);
+                        throw error;
                     res.send(results);
+                    console.log(results);
                 });
             }
             else {
                 let query = `SELECT * FROM ${schema}.tb_movies ORDER BY ${orderBy} ASC`;
                 db.query(query, (error, results, fields) => {
                     if (error)
-                        res.send(error);
+                        throw error;
                     res.send(results);
+                    console.log(results);
                 });
             }
         }
@@ -205,16 +210,18 @@ app.post('/filter-movies', (req, res) => {
                 let query = `SELECT * FROM ${schema}.tb_movies ORDER BY ${orderBy} ASC LIMIT ${amount}`;
                 db.query(query, (error, results, fields) => {
                     if (error)
-                        res.send(error);
+                        throw error;
                     res.send(results);
+                    console.log(results);
                 });
             }
             else {
                 let query = `SELECT * FROM ${schema}.tb_movies ORDER BY ${orderBy} DESC LIMIT ${amount}`;
                 db.query(query, (error, results, fields) => {
                     if (error)
-                        res.send(error);
+                        throw error;
                     res.send(results);
+                    console.log(results);
                 });
             }
         }
@@ -225,8 +232,9 @@ app.post('/filter-movies', (req, res) => {
             let query = `SELECT * FROM ${schema}.tb_movies WHERE enabled = ${enabled}`;
             db.query(query, (error, results, fields) => {
                 if (error)
-                    res.send(error);
+                    throw error;
                 res.send(results);
+                console.log(results);
             });
         }
         else {
@@ -235,13 +243,12 @@ app.post('/filter-movies', (req, res) => {
             let query = `SELECT * FROM ${schema}.tb_movies WHERE enabled = ${enabled} LIMIT ${amount}`;
             db.query(query, (error, results, fields) => {
                 if (error)
-                    res.send(error);
+                    throw error;
                 res.send(results);
+                console.log(results);
             });
         }
     }
-    else
-        res.send("Cannot perform lookup");
 });
 app.post('/review-movie', (req, res) => {
     let data = req.body;
@@ -253,7 +260,7 @@ app.post('/review-movie', (req, res) => {
     let query = `SELECT * FROM ${schema}.tb_movies WHERE title = ${title}`;
     db.query(query, (error, results, fields) => {
         if (error)
-            return res.send("Error performing query: " + error);
+            throw error;
         if (results.length == 0)
             res.send("Cannot find movie for this title");
         let author = mysql_1.default.escape(data.ReviewMovie.author);
@@ -264,7 +271,7 @@ app.post('/review-movie', (req, res) => {
         let update = `INSERT INTO ${schema}.tb_reviews (title, review, author, published, enabled) VALUES (${title}, ${review}, ${author}, '${published}', ${enabled})`;
         db.query(update, (error, results, fields) => {
             if (error)
-                return res.send("Error inserting into database : " + error);
+                throw error;
             res.send("Review Inserted successfully: " + results);
         });
     });
@@ -278,27 +285,27 @@ app.post('/schema-migration', (req, res) => {
     let migrate = `CREATE SCHEMA ${schema}`;
     db.query(migrate, (error, results, fields) => {
         if (error)
-            return res.send("Error with schema: " + error);
+            throw error;
     });
     let createTables0 = `CREATE TABLE IF NOT EXISTS ${schema}.tb_movies (title varchar(50) NOT NULL,description varchar(1000) NOT NULL,published timestamp NOT NULL,enabled boolean NOT NULL,PRIMARY KEY(title))`;
     db.query(createTables0, (error, results, fields) => {
         if (error)
-            return res.send("Error creating tables: " + error);
+            throw error;
     });
     let createTables1 = `CREATE TABLE IF NOT EXISTS ${schema}.tb_reviews (title varchar(50) NOT NULL,review varchar(1000) NOT NULL, author varchar(100) NOT NULL,published timestamp NOT NULL,enabled boolean NOT NULL)`;
     db.query(createTables1, (error, results, fields) => {
         if (error)
-            return res.send("Error creating tables: " + error);
+            throw error;
     });
     let insertValues0 = `INSERT INTO ${schema}.tb_movies SELECT * FROM ${oldschema}.tb_movies`;
     db.query(insertValues0, (error, results, fields) => {
         if (error)
-            return res.send("Error inserting into tables: " + error);
+            throw error;
     });
     let insertValues1 = `INSERT INTO ${schema}.tb_reviews SELECT * FROM ${oldschema}.tb_reviews`;
     db.query(insertValues1, (error, results, fields) => {
         if (error)
-            return res.send("Error inserting into tables: " + error);
+            throw error;
     });
     res.send("Database migration succeeded");
 });

@@ -3,6 +3,6 @@ export interface ReviewMovie {
         title : string,
         review: string,
         author : string,
-        schema : string;
+        schema : string | "moviedb";
     }
 }

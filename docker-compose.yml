@@ -1,0 +1,35 @@
+version: '3.1'
+
+services:
+
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: moviedb
+    ports:
+     - 3307:3306
+    networks:
+     - docker_xxx
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+     - 6050:8080
+    networks:
+     - docker_xxx
+  api:
+    image: movieapi
+    restart: always
+    depends_on: 
+     - db
+     - adminer
+    ports:
+     - 7500:3000
+    networks:
+     - docker_xxx
+networks:
+  docker_xxx:
+    driver: bridge

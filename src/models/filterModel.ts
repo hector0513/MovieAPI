@@ -1,9 +1,9 @@
 export interface Filter {
     Filter : {
-        orderBy : string, //published / title / enabled
-        order : string,
+        orderBy : string | "published" | "title" | "enabled",
+        order : string | "asc" | "desc",
         amount : number,
         enabled : 0 | 1 ,
-        schema : string
+        schema : string | "moviedb"
     }
 }
